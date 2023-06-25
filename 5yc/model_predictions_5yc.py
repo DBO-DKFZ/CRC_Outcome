@@ -11,18 +11,11 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import argparse
-from pycox.models import PCHazard
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as F
-from pycox.models.utils import pad_col, make_subgrid
 import TtoE_SLP_5yc as TtoE_SLP
 from random import choices
 from lifelines import KaplanMeierFitter
-
-#metrics
-from pycox.evaluation import EvalSurv
-from sksurv.metrics import integrated_brier_score
-from sksurv.metrics import integrated_brier_score
 from lifelines.utils import concordance_index
 
 def predictions(args):
@@ -153,7 +146,7 @@ def test_TtoE_ensemble(args):
     df_test[args.duration_column] = df_test[args.duration_column].apply(lambda x:int(x))
 
 
-    # for integrated brier score: 
+    # for (integrated) brier score: 
     survival_train = df_train[[args.event_column, args.duration_column]].astype(int)
     survival_test =  df_test[[args.event_column, args.duration_column]].astype(int)
     survival_train[args.event_column] = survival_train[args.event_column].astype(bool)
@@ -172,9 +165,12 @@ def test_TtoE_ensemble(args):
     
     # model 
     m = TtoE_SLP.SlideModel_Ilse(args.num_durations, args.feature_length, args.survnet_l1, args.dropout_survnet, args.survnet_l2, args.lr, args.wd, survival_train, survival_test, args.num_warmup_epochs)
-    
+
+    # dataloader
     ds = TtoE_SLP.SlideDataSet(df_test, args.patient_column, args.feature_column, args.event_column, args.duration_column, 'ipcw', args.nbr_features, args.tissue_type)
     dl = DataLoader(ds, shuffle=False, batch_size=None, batch_sampler=None, num_workers=6)
+
+    # save mean predictions
     preds = []
     for ckpt in model_ckpts: 
         print(ckpt)
