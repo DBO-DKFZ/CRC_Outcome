@@ -19,7 +19,7 @@ from lifelines import KaplanMeierFitter
 from lifelines.utils import concordance_index
 
 def predictions(args):
-    for fe in ['rand_features', 'image_features','cam_features','sub_features', 'retccl_features', 'ciga_features','dino_features', 'dino_tcga_features', 'r26_features']:
+    for fe in ['dino_tcga_features', 'r26_features']:
         args.subgroup = 'all'
         args.feature_column = fe
         test_TtoE_ensemble(args)
