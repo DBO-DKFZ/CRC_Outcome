@@ -39,8 +39,8 @@ def class_label_5(df):
     return df
 
 def calculate_ipcw(df):
-    time = np.asarray(df.Fumonths.tolist())# Time of events or censoring
-    event = np.asarray(df.death_event.tolist())  # Event indicator (1 for event, 0 for censoring)
+    time = np.asarray(df.time_curated.tolist())# Time of events or censoring
+    event = np.asarray(df.status_curated.tolist())  # Event indicator (1 for event, 0 for censoring)
     label = np.asarray(df.labels.tolist())  
     kmf = KaplanMeierFitter()
     kmf.fit(time, 1-event)
@@ -60,12 +60,12 @@ def calculate_ipcw(df):
     return df, dic
 
 def apply_ipcw(df, ipcw_dict, test):
-    if test == 'dachs':
-        time_column = 'Fumonths'
-        event_column = 'death_event'
-    else:
-        time_column = 'time_curated'
-        event_column = 'status_curated'
+    # if test == 'dachs':
+    #     time_column = 'Fumonths'
+    #     event_column = 'death_event'
+    # else:
+    time_column = 'time_curated'
+    event_column = 'status_curated'
         
     time = np.asarray(df[time_column].tolist())# Time of events or censoring
     event = np.asarray(df[event_column].tolist())  # Event indicator (1 for event, 0 for censoring)
