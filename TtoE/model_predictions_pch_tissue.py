@@ -188,7 +188,7 @@ def test_TtoE_ensemble(args):
         df_test['preds'] = surv_list
         df_test['logits'] = ensemble_preds_list
         cohort = test_pkl.split('/')[-1].split('_')[0]
-        df_test.to_pickle('/home/ext_julia/pipeline/results/preds_'+ args.test + '_'+args.feature_column+'_'+args.tissue_type'_pch.pkl')
+        df_test.to_pickle('/home/ext_julia/pipeline/results/preds_'+ args.test + '_'+args.feature_column+'_'+args.tissue_type+'_pch.pkl')
    
     if args.num_durations ==1: 
         durations = np.asarray(df_test[args.duration_column])
