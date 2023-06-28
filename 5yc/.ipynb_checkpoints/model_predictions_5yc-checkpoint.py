@@ -1,3 +1,9 @@
+# How to use: 
+# command to save the predictions of graz testset of all 9 investigated feature extractors of the 5-year-classification  
+# pickle file (test_pkl) should include columns of all 9 features, a column "time_curated" and "status_curated" 
+# command: python model_predictions_5yc.py --exp_name=OS_5yc_revision --tissue_type=TUM --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
+# results are saved under /home/ext_julia/pipeline/results/
+
 import os
 import re 
 import torch
@@ -128,7 +134,7 @@ def test_TtoE_ensemble(args):
     # use only the relevant columns to save RAM 
     df_train = df_train[[args.patient_column, args.feature_column, args.event_column, args.duration_column,args.label,'ipcw']]
     df_val = df_val[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
-    df_test = df_test[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
+    #df_test = df_test[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
     
 
     print('Some sanity checks before training')
@@ -186,29 +192,11 @@ def test_TtoE_ensemble(args):
     
     preds = torch.stack(preds)
     ensemble_preds = torch.mean(preds, dim=0)
-    #print(ensemble_preds.shape)
     ensemble_preds = ensemble_preds.squeeze(1).numpy()
     if args.save == True:
         df_test['preds'] = ensemble_preds
     df_test.to_pickle('/home/ext_julia/pipeline/results/preds_'+ args.test + '_'+args.feature_column+'_'+args.tissue_type+'_5yc.pkl')
-   # print(ensemble_preds.shape, ensemble_preds)
-    durations = np.asarray(df_test[args.duration_column].tolist())
-    labels = np.asarray(df_test[args.event_column].tolist())
-    c_index = concordance_index(durations,ensemble_preds, labels)
-    
-    # confidence intervals
-    print('Confidence intervals')
-    c_index_ci, ibs_ci = [], []
-    indices = np.arange(0,ensemble_preds.shape[0])
-    for i in range(1000):
-        draw = choices(indices, k=ensemble_preds.shape[0])
-        d = ensemble_preds[draw]
-        durations = np.asarray(df_test[args.duration_column].astype(int))[draw]
-        labels =  np.asarray(df_test[args.event_column].astype(bool))[draw]
-        c_index_ci.append(concordance_index(durations,d,labels))
-    print('Cindex: ')
-    c_index_ci = sorted(c_index_ci)
-    print(f'{round(c_index,4)} ({round(c_index_ci[125],4)} - {round(c_index_ci[975],4)})')
+
     
     
 if __name__ == "__main__":

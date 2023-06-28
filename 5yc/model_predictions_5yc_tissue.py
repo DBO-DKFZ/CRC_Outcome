@@ -1,7 +1,7 @@
 # How to use: 
 # command to save the predictions of graz testset of all 9 investigated feature extractors of the 5-year-classification  
 # pickle file (test_pkl) should include columns of all 9 features, a column "time_curated" and "status_curated" 
-# command: python model_predictions_5yc.py --exp_name=OS_5yc_revision --tissue_type=TUM --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
+# command: python model_predictions_5yc.py --exp_name=OS_5yc_revision --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
 # results are saved under /home/ext_julia/pipeline/results/
 
 import os
@@ -27,9 +27,11 @@ from lifelines.utils import concordance_index
 
 def predictions(args):
     for fe in ['rand_features', 'image_features','cam_features','sub_features', 'retccl_features', 'ciga_features','dino_features', 'dino_tcga_features', 'r26_features']:
-        args.subgroup = 'all'
-        args.feature_column = fe
-        test_TtoE_ensemble(args)
+        for tissue_type in ['STR', 'TUM+STR', 'other', 'ALL']:
+            args.subgroup = 'all'
+            args.feature_column = fe
+            args.tissue_type = tissue_type
+            test_TtoE_ensemble(args)
 
 def class_label_5(df):
     df['labels'] = 0  # Initialize the "labels" column with default value 0
@@ -94,7 +96,7 @@ def test_TtoE_ensemble(args):
     df_train = pd.read_pickle(args.train_pkl)
     df_val = pd.read_pickle(args.val_pkl)
     df_test = pd.read_pickle(test_pkl)
-    print(df_test[[args.event_column, args.duration_column]])
+    #print(df_test[[args.event_column, args.duration_column]])
     
     print(f'Size of Training/Validation/Testset: {len(df_train)}/{len(df_val)}/{len(df_test)}')
     
@@ -134,7 +136,7 @@ def test_TtoE_ensemble(args):
     # use only the relevant columns to save RAM 
     df_train = df_train[[args.patient_column, args.feature_column, args.event_column, args.duration_column,args.label,'ipcw']]
     df_val = df_val[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
-    #df_test = df_test[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
+    df_test = df_test[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
     
 
     print('Some sanity checks before training')
