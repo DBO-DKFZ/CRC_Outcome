@@ -1,3 +1,9 @@
+# How to use: 
+# command to save the predictions of graz testset of all 9 investigated feature extractors of the 5-year-classification  
+# pickle file (test_pkl) should include columns of all 9 features, a column "time_curated" and "status_curated" 
+# command: python model_predictions_5yc.py --exp_name=OS_5yc_revision --tissue_type=TUM --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
+# results are saved under /home/ext_julia/pipeline/results/
+
 import os
 import re 
 import torch
@@ -5,22 +11,15 @@ import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
 import argparse
-from pycox.models import PCHazard
 from torch.utils.data import DataLoader, Dataset
 import torch.nn.functional as F
-from pycox.models.utils import pad_col, make_subgrid
 import TtoE_SLP_5yc as TtoE_SLP
 from random import choices
 from lifelines import KaplanMeierFitter
-
-#metrics
-from pycox.evaluation import EvalSurv
-from sksurv.metrics import integrated_brier_score
-from sksurv.metrics import integrated_brier_score
 from lifelines.utils import concordance_index
 
 def predictions(args):
-    for fe in ['rand_features', 'image_features','cam_features','sub_features', 'retccl_features', 'ciga_features','dino_features', 'dino_tcga_features', 'r26_features']:
+    for fe in ['rand_features', 'image_features','cam_features','sub_features', 'retccl_features', 'ciga_features','dino_features', 'dino_tcga_features', 'r26_features']
         args.subgroup = 'all'
         args.feature_column = fe
         test_TtoE_ensemble(args)
@@ -40,8 +39,8 @@ def class_label_5(df):
     return df
 
 def calculate_ipcw(df):
-    time = np.asarray(df.Fumonths.tolist())# Time of events or censoring
-    event = np.asarray(df.death_event.tolist())  # Event indicator (1 for event, 0 for censoring)
+    time = np.asarray(df.time_curated.tolist())# Time of events or censoring
+    event = np.asarray(df.status_curated.tolist())  # Event indicator (1 for event, 0 for censoring)
     label = np.asarray(df.labels.tolist())  
     kmf = KaplanMeierFitter()
     kmf.fit(time, 1-event)
@@ -61,12 +60,12 @@ def calculate_ipcw(df):
     return df, dic
 
 def apply_ipcw(df, ipcw_dict, test):
-    if test == 'dachs':
-        time_column = 'Fumonths'
-        event_column = 'death_event'
-    else:
-        time_column = 'time_curated'
-        event_column = 'status_curated'
+    # if test == 'dachs':
+    #     time_column = 'Fumonths'
+    #     event_column = 'death_event'
+    # else:
+    time_column = 'time_curated'
+    event_column = 'status_curated'
         
     time = np.asarray(df[time_column].tolist())# Time of events or censoring
     event = np.asarray(df[event_column].tolist())  # Event indicator (1 for event, 0 for censoring)
@@ -128,7 +127,7 @@ def test_TtoE_ensemble(args):
     # use only the relevant columns to save RAM 
     df_train = df_train[[args.patient_column, args.feature_column, args.event_column, args.duration_column,args.label,'ipcw']]
     df_val = df_val[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
-    df_test = df_test[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
+    #df_test = df_test[[args.patient_column, args.feature_column, args.event_column, args.duration_column, args.label,'ipcw' ]]
     
 
     print('Some sanity checks before training')
@@ -147,7 +146,7 @@ def test_TtoE_ensemble(args):
     df_test[args.duration_column] = df_test[args.duration_column].apply(lambda x:int(x))
 
 
-    # for integrated brier score: 
+    # for (integrated) brier score: 
     survival_train = df_train[[args.event_column, args.duration_column]].astype(int)
     survival_test =  df_test[[args.event_column, args.duration_column]].astype(int)
     survival_train[args.event_column] = survival_train[args.event_column].astype(bool)
@@ -166,9 +165,12 @@ def test_TtoE_ensemble(args):
     
     # model 
     m = TtoE_SLP.SlideModel_Ilse(args.num_durations, args.feature_length, args.survnet_l1, args.dropout_survnet, args.survnet_l2, args.lr, args.wd, survival_train, survival_test, args.num_warmup_epochs)
-    
+
+    # dataloader
     ds = TtoE_SLP.SlideDataSet(df_test, args.patient_column, args.feature_column, args.event_column, args.duration_column, 'ipcw', args.nbr_features, args.tissue_type)
     dl = DataLoader(ds, shuffle=False, batch_size=None, batch_sampler=None, num_workers=6)
+
+    # save mean predictions
     preds = []
     for ckpt in model_ckpts: 
         print(ckpt)
