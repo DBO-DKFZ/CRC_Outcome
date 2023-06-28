@@ -1,7 +1,7 @@
 # How to use: 
 # command to save the predictions of graz testset of all 9 investigated feature extractors of the 5-year-classification  
 # pickle file (test_pkl) should include columns of all 9 features, a column "time_curated" and "status_curated" 
-# command: python model_predictions_5yc.py --exp_name=OS_5yc_revision --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
+# command: python model_predictions_5yc_tissue.py --exp_name=OS_5yc_revision --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
 # results are saved under /home/ext_julia/pipeline/results/
 
 import os
