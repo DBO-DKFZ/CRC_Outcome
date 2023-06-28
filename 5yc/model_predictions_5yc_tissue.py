@@ -1,5 +1,5 @@
 # How to use: 
-# command to save the predictions of graz testset of all 9 investigated feature extractors of the 5-year-classification  
+# command to save the predictions of graz testset of all 9 investigated feature extractors and 4 tissue variations of the 5-year-classification  
 # pickle file (test_pkl) should include columns of all 9 features, a column "time_curated" and "status_curated" 
 # command: python model_predictions_5yc_tissue.py --exp_name=OS_5yc_revision --save=True --test_pkl=/path/to/pickle_file_from_step6.pkl
 # results are saved under /home/ext_julia/pipeline/results/
@@ -48,8 +48,8 @@ def class_label_5(df):
     return df
 
 def calculate_ipcw(df):
-    time = np.asarray(df.Fumonths.tolist())# Time of events or censoring
-    event = np.asarray(df.death_event.tolist())  # Event indicator (1 for event, 0 for censoring)
+    time = np.asarray(df.time_curated.tolist())# dummy files do not have original data
+    event = np.asarray(df.status_curated.tolist())  #  same as above 
     label = np.asarray(df.labels.tolist())  
     kmf = KaplanMeierFitter()
     kmf.fit(time, 1-event)
@@ -69,12 +69,9 @@ def calculate_ipcw(df):
     return df, dic
 
 def apply_ipcw(df, ipcw_dict, test):
-    if test == 'dachs':
-        time_column = 'Fumonths'
-        event_column = 'death_event'
-    else:
-        time_column = 'time_curated'
-        event_column = 'status_curated'
+
+    time_column = 'time_curated'
+    event_column = 'status_curated'
         
     time = np.asarray(df[time_column].tolist())# Time of events or censoring
     event = np.asarray(df[event_column].tolist())  # Event indicator (1 for event, 0 for censoring)
