@@ -33,6 +33,7 @@ def predict_surv_df(preds, sub, duration_index):
 
 def predictions(args):
     for fe in ['rand_features', 'image_features','cam_features','sub_features', 'retccl_features', 'ciga_features','dino_features', 'dino_tcga_features', 'r26_features']:
+        print(fe)
         for tissue_type in ['STR', 'TUM+STR', 'other', 'ALL']:
             args.subgroup = 'all'
             args.feature_column = fe
@@ -145,10 +146,7 @@ def test_TtoE_ensemble(args):
         exp_name = args.exp_name + '_' + args.subgroup + '_' + args.tissue_type + '_' + fold +'_' + args.feature_column + '_' + args.attention
         exp_path = args.root+exp_name+'/version_'+version+'/checkpoints/'
         for (dirpath, dirnames, filenames) in os.walk(exp_path):
-            if len(filenames)>1:
-                filename = filenames[1]
-            else:
-                filename = filenames[0]
+            filename = filenames[0]
             model_ckpts.append(exp_path + filename)
     
     if args.attention == 'ilse':
