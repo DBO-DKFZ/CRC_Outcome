@@ -260,7 +260,7 @@ if __name__ == "__main__":
     parser.add_argument('--subgroup', default='all', type=str)
     parser.add_argument('--test_subgroup', default='all', type=str)
     parser.add_argument('--ensemble_retrained', default=False, type=bool)
-    parser.add_argument('--epoch_list', nargs='+', required=True)
+    #parser.add_argument('--epoch_list', nargs='+', required=True)
     parser.add_argument('--tissue_type', default='TUM', type=str)
     
     parser.add_argument('--root', default='/home/ext_julia/pipeline/own_models/', type=str)
